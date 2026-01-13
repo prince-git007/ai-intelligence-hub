@@ -1,0 +1,31 @@
+# docker-compose.override.yml.example
+# Copy this to docker-compose.override.yml to customize your local setup
+# This file overrides settings in docker-compose.yml
+
+services:
+  mongodb:
+    ports:
+      - "27017:27017"
+    # Uncomment to add authentication
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: admin
+    #   MONGO_INITDB_ROOT_PASSWORD: password123
+
+  server:
+    # Uncomment for development with live reload
+    # volumes:
+    #   - ./server:/app
+    #   - /app/node_modules
+    # command: npx nodemon index.js
+    environment:
+      - NODE_ENV=development
+      # Add custom environment variables here
+      # - CUSTOM_VAR=value
+
+  n8n:
+    # Uncomment to change authentication
+    # environment:
+    #   - N8N_BASIC_AUTH_USER=your-username
+    #   - N8N_BASIC_AUTH_PASSWORD=your-password
+    ports:
+      - "5678:5678"
