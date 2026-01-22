@@ -1,0 +1,62 @@
+{
+  "workflows": [
+    {
+      "name": "Simple Lead Creator",
+      "description": "Creates a test lead every time you execute it",
+      "nodes": [
+        {
+          "type": "Manual Trigger",
+          "name": "Start"
+        },
+        {
+          "type": "HTTP Request",
+          "name": "Create Lead",
+          "parameters": {
+            "method": "POST",
+            "url": "http://server:5000/api/v1/leads",
+            "authentication": "none",
+            "sendBody": true,
+            "bodyParameters": {
+              "parameters": [
+                {
+                  "name": "source",
+                  "value": "n8n Test"
+                },
+                {
+                  "name": "originalContent",
+                  "value": "This is a test lead created from n8n automation"
+                },
+                {
+                  "name": "priority",
+                  "value": "High"
+                }
+              ]
+            },
+            "options": {
+              "response": {
+                "response": {
+                  "fullResponse": false
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhook Lead Receiver",
+      "description": "Receives leads from external webhooks",
+      "instructions": [
+        "1. Add a Webhook node (Listen for POST)",
+        "2. Add a Set node to format data:",
+        "   - source: {{ $json.body.source }}",
+        "   - originalContent: {{ $json.body.message }}",
+        "   - priority: {{ $json.body.priority }}",
+        "3. Add HTTP Request node:",
+        "   - Method: POST",
+        "   - URL: http://server:5000/api/v1/leads",
+        "   - Body: {{ $json }}"
+      ]
+    }
+  ]
+}

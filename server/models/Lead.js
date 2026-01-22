@@ -23,7 +23,26 @@ const leadSchema = new mongoose.Schema({
     type: String,
     enum: ['New', 'Contacted'],
     default: 'New'
-  }
+  },
+  replies: [{
+    replyText: {
+      type: String,
+      required: true
+    },
+    sentAt: {
+      type: Date,
+      default: Date.now
+    },
+    sentBy: {
+      type: String,
+      default: 'system'
+    },
+    status: {
+      type: String,
+      enum: ['queued', 'sent', 'failed'],
+      default: 'queued'
+    }
+  }]
 }, {
   timestamps: true
 });

@@ -1,0 +1,70 @@
+{
+  "name": "AI Hub - Complete Integration",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "test-lead",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-test",
+      "name": "Webhook - Test Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "test-lead"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract data from webhook\nconst message = $input.item.json.message || $input.item.json.body || \"No message\";\nconst source = $input.item.json.source || \"Test Source\";\nconst priority = $input.item.json.priority || \"Medium\";\n\n// Return formatted data for AI Hub\nreturn {\n  source: source,\n  originalContent: message,\n  priority: priority\n};"
+      },
+      "id": "code-format",
+      "name": "Format Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://server:5000/api/v1/leads",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "headers": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "http-request",
+      "name": "Send to AI Hub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Test Lead": {
+      "main": [[{"node": "Format Data", "type": "main", "index": 0}]]
+    },
+    "Format Data": {
+      "main": [[{"node": "Send to AI Hub", "type": "main", "index": 0}]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-15T09:00:00.000Z",
+  "versionId": "1"
+}
