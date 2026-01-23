@@ -1,0 +1,185 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main  # Change to 'master' if that's your default branch
+  workflow_dispatch:  # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  deploy:
+    name: Deploy to AWS Ubuntu Server
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🚀 Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: 🔐 Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+      
+      - name: 📦 Add EC2 to Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.AWS_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: 🐳 Deploy to EC2
+        env:
+          AWS_HOST: ${{ secrets.AWS_HOST }}
+          AWS_USER: ${{ secrets.AWS_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=no $AWS_USER@$AWS_HOST << 'ENDSSH'
+            set -e
+            
+            echo "=========================================="
+            echo "🚀 Starting Deployment Process"
+            echo "=========================================="
+            
+            # Navigate to project directory (or create it)
+            PROJECT_DIR="/home/$USER/ai-intelligence-hub"
+            
+            if [ ! -d "$PROJECT_DIR" ]; then
+              echo "📁 Creating project directory..."
+              mkdir -p $PROJECT_DIR
+            fi
+            
+            cd $PROJECT_DIR
+            
+            # Check if Docker is installed
+            echo "🐳 Checking Docker installation..."
+            if ! command -v docker &> /dev/null; then
+              echo "📦 Installing Docker..."
+              sudo apt-get update
+              sudo apt-get install -y ca-certificates curl gnupg lsb-release
+              
+              # Add Docker's official GPG key
+              sudo mkdir -p /etc/apt/keyrings
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+              
+              # Set up Docker repository
+              echo \
+                "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+                $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+              
+              # Install Docker
+              sudo apt-get update
+              sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+              
+              # Add current user to docker group
+              sudo usermod -aG docker $USER
+              
+              echo "✅ Docker installed successfully!"
+            else
+              echo "✅ Docker is already installed"
+              docker --version
+            fi
+            
+            # Check if Docker Compose is installed
+            echo "🐳 Checking Docker Compose installation..."
+            if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
+              echo "📦 Installing Docker Compose..."
+              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+              echo "✅ Docker Compose installed successfully!"
+            else
+              echo "✅ Docker Compose is already installed"
+              docker-compose --version 2>/dev/null || docker compose version
+            fi
+            
+            # Clone or pull latest code
+            if [ -d ".git" ]; then
+              echo "📥 Pulling latest code from GitHub..."
+              git fetch origin
+              git reset --hard origin/main  # Change to 'master' if needed
+              git pull origin main  # Change to 'master' if needed
+            else
+              echo "📥 Cloning repository..."
+              cd ..
+              rm -rf ai-intelligence-hub
+              git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git ai-intelligence-hub
+              cd ai-intelligence-hub
+            fi
+            
+            # Create .env file if it doesn't exist
+            if [ ! -f "server/.env" ]; then
+              echo "📝 Creating server/.env file..."
+              cat > server/.env << 'EOF'
+# Server Configuration
+PORT=5000
+NODE_ENV=production
+
+# MongoDB Configuration
+MONGODB_URI=mongodb://mongodb:27017/ai-intelligence-hub
+
+# CORS Configuration
+CORS_ORIGIN=http://localhost:5173,http://localhost:80,http://localhost:3000,http://localhost
+
+# AI Service Configuration
+AI_PROVIDER=groq
+GROQ_API_KEY=YOUR_GROQ_API_KEY_HERE
+GROQ_MODEL=llama-3.1-8b-instant
+
+# AI Features Toggle
+ENABLE_AI_SUMMARY=true
+ENABLE_AI_PRIORITY=false
+ENABLE_AI_REPLY=true
+
+# n8n Webhook for Replies
+N8N_WEBHOOK_URL=http://n8n:5678/webhook/reply-lead
+EOF
+              echo "⚠️  WARNING: Please update server/.env with your actual API keys!"
+            fi
+            
+            # Stop existing containers
+            echo "🛑 Stopping existing containers..."
+            sudo docker-compose down || true
+            
+            # Build and start containers
+            echo "🏗️  Building and starting containers..."
+            sudo docker-compose up -d --build
+            
+            # Wait for containers to be healthy
+            echo "⏳ Waiting for containers to be healthy..."
+            sleep 10
+            
+            # Check container status
+            echo "📊 Container Status:"
+            sudo docker-compose ps
+            
+            # Show logs
+            echo "📋 Recent Logs:"
+            sudo docker-compose logs --tail=20
+            
+            echo "=========================================="
+            echo "✅ Deployment Complete!"
+            echo "=========================================="
+            echo ""
+            echo "🌐 Your app should be running at:"
+            echo "   Frontend: http://$AWS_HOST (port 80)"
+            echo "   Backend:  http://$AWS_HOST:5000"
+            echo "   n8n:      http://$AWS_HOST:5678"
+            echo ""
+            echo "📝 Next steps:"
+            echo "   1. Update server/.env with your API keys"
+            echo "   2. Configure your domain/DNS if needed"
+            echo "   3. Set up SSL/HTTPS (recommended for production)"
+            echo ""
+          ENDSSH
+      
+      - name: ✅ Deployment Status
+        if: success()
+        run: |
+          echo "=========================================="
+          echo "✅ Deployment Successful!"
+          echo "=========================================="
+          echo "Your AI Intelligence Hub is now live on AWS!"
+      
+      - name: ❌ Deployment Failed
+        if: failure()
+        run: |
+          echo "=========================================="
+          echo "❌ Deployment Failed!"
+          echo "=========================================="
+          echo "Please check the logs above for errors."

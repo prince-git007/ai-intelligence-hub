@@ -48,7 +48,7 @@ const ReplyModal = ({ isOpen, onClose, lead }) => {
 
   const sendReply = async () => {
     if (!replyText.trim()) {
-      toast.error('Please enter a reply message', {
+      toast.error('Please enter a reply message!', {
         style: {
           background: '#18181b',
           color: '#fff',
