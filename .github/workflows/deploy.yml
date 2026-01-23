@@ -105,7 +105,7 @@ jobs:
             # Create .env file if it doesn't exist
             if [ ! -f "server/.env" ]; then
               echo "📝 Creating server/.env file..."
-              cat > server/.env << 'EOF'
+              cat > server/.env << 'ENVEOF'
 # Server Configuration
 PORT=5000
 NODE_ENV=production
@@ -128,7 +128,7 @@ ENABLE_AI_REPLY=true
 
 # n8n Webhook for Replies
 N8N_WEBHOOK_URL=http://n8n:5678/webhook/reply-lead
-EOF
+ENVEOF
               echo "⚠️  WARNING: Please update server/.env with your actual API keys!"
             fi
             
