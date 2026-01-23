@@ -105,30 +105,29 @@ jobs:
             # Create .env file if it doesn't exist
             if [ ! -f "server/.env" ]; then
               echo "📝 Creating server/.env file..."
-              cat > server/.env << 'ENVEOF'
-# Server Configuration
-PORT=5000
-NODE_ENV=production
-
-# MongoDB Configuration
-MONGODB_URI=mongodb://mongodb:27017/ai-intelligence-hub
-
-# CORS Configuration
-CORS_ORIGIN=http://localhost:5173,http://localhost:80,http://localhost:3000,http://localhost
-
-# AI Service Configuration
-AI_PROVIDER=groq
-GROQ_API_KEY=YOUR_GROQ_API_KEY_HERE
-GROQ_MODEL=llama-3.1-8b-instant
-
-# AI Features Toggle
-ENABLE_AI_SUMMARY=true
-ENABLE_AI_PRIORITY=false
-ENABLE_AI_REPLY=true
-
-# n8n Webhook for Replies
-N8N_WEBHOOK_URL=http://n8n:5678/webhook/reply-lead
-ENVEOF
+              mkdir -p server
+              echo "# Server Configuration" > server/.env
+              echo "PORT=5000" >> server/.env
+              echo "NODE_ENV=production" >> server/.env
+              echo "" >> server/.env
+              echo "# MongoDB Configuration" >> server/.env
+              echo "MONGODB_URI=mongodb://mongodb:27017/ai-intelligence-hub" >> server/.env
+              echo "" >> server/.env
+              echo "# CORS Configuration" >> server/.env
+              echo "CORS_ORIGIN=http://localhost:5173,http://localhost:80,http://localhost:3000,http://localhost" >> server/.env
+              echo "" >> server/.env
+              echo "# AI Service Configuration" >> server/.env
+              echo "AI_PROVIDER=groq" >> server/.env
+              echo "GROQ_API_KEY=YOUR_GROQ_API_KEY_HERE" >> server/.env
+              echo "GROQ_MODEL=llama-3.1-8b-instant" >> server/.env
+              echo "" >> server/.env
+              echo "# AI Features Toggle" >> server/.env
+              echo "ENABLE_AI_SUMMARY=true" >> server/.env
+              echo "ENABLE_AI_PRIORITY=false" >> server/.env
+              echo "ENABLE_AI_REPLY=true" >> server/.env
+              echo "" >> server/.env
+              echo "# n8n Webhook for Replies" >> server/.env
+              echo "N8N_WEBHOOK_URL=http://n8n:5678/webhook/reply-lead" >> server/.env
               echo "⚠️  WARNING: Please update server/.env with your actual API keys!"
             fi
             
