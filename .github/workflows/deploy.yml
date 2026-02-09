@@ -133,11 +133,11 @@ jobs:
             
             # Stop existing containers
             echo "🛑 Stopping existing containers..."
-            sudo docker-compose down || true
+            sudo docker compose down || true
             
             # Build and start containers
             echo "🏗️  Building and starting containers..."
-            sudo docker-compose up -d --build
+            sudo docker compose up -d --build
             
             # Wait for containers to be healthy
             echo "⏳ Waiting for containers to be healthy..."
@@ -145,11 +145,11 @@ jobs:
             
             # Check container status
             echo "📊 Container Status:"
-            sudo docker-compose ps
+            sudo docker compose ps
             
             # Show logs
             echo "📋 Recent Logs:"
-            sudo docker-compose logs --tail=20
+            sudo docker compose logs --tail=20
             
             echo "=========================================="
             echo "✅ Deployment Complete!"
