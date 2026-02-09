@@ -98,7 +98,7 @@ jobs:
               echo "📥 Cloning repository..."
               cd ..
               rm -rf ai-intelligence-hub
-              git clone https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git ai-intelligence-hub
+              git clone https://github.com/prince-git007/ai-intelligence-hub.git ai-intelligence-hub
               cd ai-intelligence-hub
             fi
             
